@@ -1,10 +1,8 @@
 {
   "name": "survey-backend",
   "version": "1.0.0",
-  "scripts": {
-    "start": "node api/submit.js"
-  },
   "dependencies": {
-    "cos-nodejs-sdk-v5": "^0.5.26"
+    "cos-nodejs-sdk-v5": "*"
   }
 }
+
