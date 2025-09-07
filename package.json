@@ -5,6 +5,6 @@
     "start": "node api/submit.js"
   },
   "dependencies": {
-    "cos-nodejs-sdk-v5": "^0.5.27"
+    "cos-nodejs-sdk-v5": "^0.5.26"
   }
 }
