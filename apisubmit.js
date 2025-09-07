@@ -1,15 +1,16 @@
-// api/submit.js - VercelÎŞ·şÎñÆ÷º¯Êı
+// api/submit.js
 const COS = require('cos-nodejs-sdk-v5');
 
-// ÔÊĞí¿çÓòµÄÓòÃû
+// å…è®¸è·¨åŸŸçš„åŸŸå - æ·»åŠ ä½ çš„å®é™…å‰ç«¯åœ°å€
 const allowedOrigins = [
-    'https://your-username.github.io', // Ìæ»»ÎªÄãµÄGitHub PagesµØÖ·
+    'https://gs-yang007.github.io',  // ä½ çš„GitHub Pagesåœ°å€
     'http://localhost:8080',
-    'http://127.0.0.1:8080'
+    'http://127.0.0.1:8080',
+    'http://localhost:3000'
 ];
 
 export default async function handler(req, res) {
-    // ÉèÖÃCORS
+    // è®¾ç½®CORS
     const origin = req.headers.origin;
     if (allowedOrigins.includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -17,19 +18,19 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Key');
 
-    // ´¦ÀíÔ¤¼ìÇëÇó
+    // å¤„ç†é¢„æ£€è¯·æ±‚
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
-    // Ö»ÔÊĞíPOSTÇëÇó
+    // åªå…è®¸POSTè¯·æ±‚
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Ö»ÔÊĞíPOSTÇëÇó' });
+        return res.status(405).json({ error: 'åªå…è®¸POSTè¯·æ±‚' });
     }
 
     try {
-        // ´Ó»·¾³±äÁ¿»ñÈ¡ÌÚÑ¶ÔÆÆ¾Ö¤
+        // ä»ç¯å¢ƒå˜é‡è·å–è…¾è®¯äº‘å‡­è¯
         const cos = new COS({
             SecretId: process.env.TENCENT_SECRET_ID,
             SecretKey: process.env.TENCENT_SECRET_KEY
@@ -40,15 +41,15 @@ export default async function handler(req, res) {
             Region: 'ap-guangzhou'
         };
 
-        // ÑéÖ¤±ØÒªµÄÊı¾İ
+        // éªŒè¯å¿…è¦çš„æ•°æ®
         const { sessionData, comparisonRecords } = req.body;
         if (!sessionData || !comparisonRecords) {
-            return res.status(400).json({ error: 'È±ÉÙ±ØÒªµÄÊı¾İ' });
+            return res.status(400).json({ error: 'ç¼ºå°‘å¿…è¦çš„æ•°æ®' });
         }
 
-        console.log(`ÊÕµ½ÎÊ¾íÊı¾İ: ${sessionData.userData.nickname}, ¶Ô±ÈÊıÁ¿: ${comparisonRecords.length}`);
+        console.log(`æ”¶åˆ°é—®å·æ•°æ®: ${sessionData.userData.nickname}, å¯¹æ¯”æ•°é‡: ${comparisonRecords.length}`);
 
-        // ¶ÁÈ¡ÏÖÓĞÊı¾İ
+        // è¯»å–ç°æœ‰æ•°æ®
         let existingData;
         try {
             const data = await cos.getObject({
@@ -59,13 +60,13 @@ export default async function handler(req, res) {
         } catch (err) {
             if (err.statusCode === 404) {
                 existingData = { sessions: [], comparisonRecords: [] };
-                console.log('´´½¨ĞÂµÄÊı¾İÎÄ¼ş');
+                console.log('åˆ›å»ºæ–°çš„æ•°æ®æ–‡ä»¶');
             } else {
                 throw err;
             }
         }
 
-        // ¸üĞÂÊı¾İ
+        // æ›´æ–°æ•°æ®
         const filteredSessions = existingData.sessions.filter(
             s => s.userData.nickname !== sessionData.userData.nickname
         );
@@ -81,7 +82,7 @@ export default async function handler(req, res) {
             totalComparisons: updatedComparisons.length
         };
 
-        // ±£´æµ½ÌÚÑ¶ÔÆ
+        // ä¿å­˜åˆ°è…¾è®¯äº‘
         await cos.putObject({
             ...bucketConfig,
             Key: 'survey-data.json',
@@ -89,17 +90,17 @@ export default async function handler(req, res) {
             ContentType: 'application/json'
         }).promise();
 
-        console.log(`Êı¾İ±£´æ³É¹¦: ×Ü»á»° ${updatedSessions.length}, ×Ü¶Ô±È ${updatedComparisons.length}`);
+        console.log(`æ•°æ®ä¿å­˜æˆåŠŸ: æ€»ä¼šè¯ ${updatedSessions.length}, æ€»å¯¹æ¯” ${updatedComparisons.length}`);
 
         res.json({
             success: true,
-            message: 'Êı¾İ±£´æ³É¹¦',
+            message: 'æ•°æ®ä¿å­˜æˆåŠŸ',
             totalSessions: updatedSessions.length,
             totalComparisons: updatedComparisons.length
         });
 
     } catch (error) {
-        console.error('±£´æÊ§°Ü:', error);
-        res.status(500).json({ error: '·şÎñÆ÷´íÎó: ' + error.message });
+        console.error('ä¿å­˜å¤±è´¥:', error);
+        res.status(500).json({ error: 'æœåŠ¡å™¨é”™è¯¯: ' + error.message });
     }
 }
